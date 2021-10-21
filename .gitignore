@@ -12,11 +12,16 @@ dist/game.pdb
 dist/SDL2.dll
 dist/game
 dist/game.exe
+dist/client.ilk
+dist/client.pdb
 dist/client
 dist/client.exe
+dist/server.ilk
+dist/server.pdb
 dist/server
 dist/server.exe
 dist/freetype-test*
 scenes/show-meshes*
 scenes/show-scene*
 *.blend[0-9]
+.vs/
