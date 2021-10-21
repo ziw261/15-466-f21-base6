@@ -268,12 +268,6 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 		#define HEX_TO_U8VEC4( HX ) (glm::u8vec4( (HX >> 24) & 0xff, (HX >> 16) & 0xff, (HX >> 8) & 0xff, (HX) & 0xff ))
 		const glm::u8vec4 bg_color = HEX_TO_U8VEC4(0x193b59ff);
 		const glm::u8vec4 fg_color = HEX_TO_U8VEC4(0xf44336ff);
-		const glm::u8vec4 shadow_color = HEX_TO_U8VEC4(0xf2ad94ff);
-		const std::vector< glm::u8vec4 > trail_colors = {
-			HEX_TO_U8VEC4(0xf2ad9488),
-			HEX_TO_U8VEC4(0xf2897288),
-			HEX_TO_U8VEC4(0xbacac088),
-		};
 		#undef HEX_TO_U8VEC4
 
 
