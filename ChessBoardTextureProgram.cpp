@@ -126,11 +126,11 @@ void ChessBoardTextureProgram::SetupChessBoard()
 {
 
 	#define HEX_TO_U8VEC4( HX ) (glm::u8vec4( (HX >> 24) & 0xff, (HX >> 16) & 0xff, (HX >> 8) & 0xff, (HX) & 0xff ))
-	const glm::u8vec4 bg_color = HEX_TO_U8VEC4(0x193b59ff);
+	//const glm::u8vec4 bg_color = HEX_TO_U8VEC4(0x193b59ff);
 	const glm::u8vec4 cb_color = HEX_TO_U8VEC4(0xeab676ff);
-	const glm::u8vec4 bd_color = HEX_TO_U8VEC4(0x0c0f0aff);
-	const glm::u8vec4 rd_color = HEX_TO_U8VEC4(0xff206eff);
-	const glm::u8vec4 yl_color = HEX_TO_U8VEC4(0xfbff12ff);
+	//const glm::u8vec4 bd_color = HEX_TO_U8VEC4(0x0c0f0aff);
+	//const glm::u8vec4 rd_color = HEX_TO_U8VEC4(0xff206eff);
+	//const glm::u8vec4 yl_color = HEX_TO_U8VEC4(0xfbff12ff);
 	#undef HEX_TO_U8VEC4
 
 	//4 Chess boarders
