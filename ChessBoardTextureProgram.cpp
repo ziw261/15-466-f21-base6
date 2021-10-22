@@ -124,47 +124,127 @@ GLuint ChessBoardTextureProgram::GetVao(GLuint vertex_buffer) const
 
 void ChessBoardTextureProgram::SetupChessBoard() 
 {
-
 	#define HEX_TO_U8VEC4( HX ) (glm::u8vec4( (HX >> 24) & 0xff, (HX >> 16) & 0xff, (HX >> 8) & 0xff, (HX) & 0xff ))
 	//const glm::u8vec4 bg_color = HEX_TO_U8VEC4(0x193b59ff);
 	const glm::u8vec4 cb_color = HEX_TO_U8VEC4(0xeab676ff);
-	//const glm::u8vec4 bd_color = HEX_TO_U8VEC4(0x0c0f0aff);
+	const glm::u8vec4 bd_color = HEX_TO_U8VEC4(0x0c0f0aff);
 	//const glm::u8vec4 rd_color = HEX_TO_U8VEC4(0xff206eff);
 	//const glm::u8vec4 yl_color = HEX_TO_U8VEC4(0xfbff12ff);
 	#undef HEX_TO_U8VEC4
 
 	//4 Chess boarders
 	Rectangle b1;
-	b1.rectangle_size = glm::vec4(-0.83f, -0.83f, 0.83f, 0.83f);
-	b1.color = cb_color;
+	b1.rectangle_size = glm::vec4( -CHESSBOARD_SIZE - CHESSBOARD_BOARDER, 
+									-CHESSBOARD_SIZE - CHESSBOARD_BOARDER, 
+									-CHESSBOARD_SIZE, 
+									CHESSBOARD_SIZE + CHESSBOARD_BOARDER);
+	b1.color = bd_color;
 	board_assets.push_back(b1);
 
-	
+	Rectangle b2;
+	b2.rectangle_size = glm::vec4( CHESSBOARD_SIZE,
+									-CHESSBOARD_SIZE - CHESSBOARD_BOARDER,
+									CHESSBOARD_SIZE + CHESSBOARD_BOARDER,
+									CHESSBOARD_SIZE + CHESSBOARD_BOARDER);
+	b2.color = bd_color;
+	board_assets.push_back(b2);
 
-	for (auto& r : board_assets)
+	Rectangle b3;
+	b3.rectangle_size = glm::vec4( -CHESSBOARD_SIZE - CHESSBOARD_BOARDER,
+									CHESSBOARD_SIZE,
+									 CHESSBOARD_SIZE + CHESSBOARD_BOARDER,
+									CHESSBOARD_SIZE + CHESSBOARD_BOARDER);
+	b3.color = bd_color;
+	board_assets.push_back(b3);
+
+	Rectangle b4;
+	b4.rectangle_size = glm::vec4(-CHESSBOARD_SIZE - CHESSBOARD_BOARDER,
+									-CHESSBOARD_SIZE - CHESSBOARD_BOARDER,
+									CHESSBOARD_SIZE + CHESSBOARD_BOARDER,
+									-CHESSBOARD_SIZE);
+	b4.color = bd_color;
+	board_assets.push_back(b4);
+
+
+	// Chessboard
+	Rectangle cb;
+	cb.rectangle_size = glm::vec4(-CHESSBOARD_SIZE, -CHESSBOARD_SIZE, CHESSBOARD_SIZE, CHESSBOARD_SIZE);
+	cb.color = cb_color;
+	board_assets.push_back(cb);
+
+
+	// Chessboard lines
+	for (size_t i = 1; i < 14; i++)
 	{
-		GLCall(glGenBuffers(1, &r.vertex_buffer));
-		GLCall(glBindBuffer(GL_ARRAY_BUFFER, r.vertex_buffer));
-		Vertex vertices[]{
-			{{r.rectangle_size[0], r.rectangle_size[1]}, r.color, {0,1}},
-			{{r.rectangle_size[2], r.rectangle_size[1]}, r.color, {1,1}},
-			{{r.rectangle_size[0], r.rectangle_size[3]}, r.color, {0,0}},
-			{{r.rectangle_size[2], r.rectangle_size[3]}, r.color, {1,0}}
-		};
-		GLCall(glBufferData(GL_ARRAY_BUFFER, 4 * sizeof(Vertex), static_cast<const void*>(vertices), GL_STATIC_DRAW));
-		r.vertex_array = GetVao(r.vertex_buffer);
+		Rectangle l;
+		l.rectangle_size = glm::vec4( -CHESSBOARD_SIZE + i * 90,
+										-CHESSBOARD_SIZE,
+									  -CHESSBOARD_SIZE + CHESSBOARD_BOARDER + i * 90,
+										CHESSBOARD_SIZE);
+		l.color = bd_color;
+		board_assets.push_back(l);
+
+		Rectangle l2;
+		l2.rectangle_size = glm::vec4( -CHESSBOARD_SIZE,
+										-CHESSBOARD_SIZE + i * 90,
+										CHESSBOARD_SIZE,
+										-CHESSBOARD_SIZE + i * 90 + CHESSBOARD_BOARDER);
+		l2.color = bd_color;
+		board_assets.push_back(l2);
 	}
+
+	//std::cout << board_assets.size() << std::endl;
+	//for (auto& r : board_assets)
+	//{
+	//	GLCall(glGenBuffers(1, &r.vertex_buffer));
+	//	GLCall(glBindBuffer(GL_ARRAY_BUFFER, r.vertex_buffer));
+	//	Vertex vertices[]{
+	//		{{r.rectangle_size[0], r.rectangle_size[1]}, r.color, {0,1}},
+	//		{{r.rectangle_size[2], r.rectangle_size[1]}, r.color, {1,1}},
+	//		{{r.rectangle_size[0], r.rectangle_size[3]}, r.color, {0,0}},
+	//		{{r.rectangle_size[2], r.rectangle_size[3]}, r.color, {1,0}}
+	//	};
+	//	GLCall(glBufferData(GL_ARRAY_BUFFER, 4 * sizeof(Vertex), static_cast<const void*>(vertices), GL_STATIC_DRAW));
+	//	r.vertex_array = GetVao(r.vertex_buffer);
+	//}
 }
 
-void ChessBoardTextureProgram::DrawChessBoard() const
+void ChessBoardTextureProgram::DrawChessBoard(glm::uvec2 const& drawable_size) const
 {
-	for (auto& r : board_assets)
+	for (const auto& r : board_assets)
 	{
+		GLuint vertex_buffer = -1U;
+		GLuint vertex_array = -1U;
+
+		GLCall(glGenBuffers(1, &vertex_buffer));
+		GLCall(glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer));
+		Vertex vertices[]{
+			{{r.rectangle_size[0] / drawable_size.x, r.rectangle_size[1] / drawable_size.y}, r.color, {0,1}},
+			{{r.rectangle_size[2] / drawable_size.x, r.rectangle_size[1] / drawable_size.y}, r.color, {1,1}},
+			{{r.rectangle_size[0] / drawable_size.x, r.rectangle_size[3] / drawable_size.y}, r.color, {0,0}},
+			{{r.rectangle_size[2] / drawable_size.x, r.rectangle_size[3] / drawable_size.y}, r.color, {1,0}}
+		};
+		GLCall(glBufferData(GL_ARRAY_BUFFER, 4 * sizeof(Vertex), static_cast<const void*>(vertices), GL_STATIC_DRAW));
+		vertex_array = GetVao(vertex_buffer);
+
 		GLCall(glUseProgram(program));
-		GLCall(glBindVertexArray(r.vertex_buffer));
+		GLCall(glBindVertexArray(vertex_array));
 		GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rectangle_index_buffer));
 		GLCall(glActiveTexture(GL_TEXTURE0));
 		GLCall(glBindTexture(GL_TEXTURE_2D, rectangle_texture));
 		GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, static_cast<const void*>(0)));
+
+		GLCall(glDeleteBuffers(1, &vertex_buffer));
+		GLCall(glDeleteVertexArrays(1, &vertex_array));
+
+		//for (auto& r : board_assets)
+		//{
+		//	GLCall(glUseProgram(program));
+		//	GLCall(glBindVertexArray(r.vertex_buffer));
+		//	GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rectangle_index_buffer));
+		//	GLCall(glActiveTexture(GL_TEXTURE0));
+		//	GLCall(glBindTexture(GL_TEXTURE_2D, rectangle_texture));
+		//	GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, static_cast<const void*>(0)));
+		//}
 	}
 }

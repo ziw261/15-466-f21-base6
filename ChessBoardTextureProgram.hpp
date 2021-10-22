@@ -4,7 +4,8 @@
 #include "Load.hpp"
 #include "Scene.hpp"
 
-#define CHESSBOARD_SIZE 14.0f
+#define CHESSBOARD_SIZE 630.0f
+#define CHESSBOARD_BOARDER 5.0f
 #define CHESSBOX_SIZE 2.0f
 
 struct ChessBoardTextureProgram
@@ -15,7 +16,7 @@ struct ChessBoardTextureProgram
 	static GLuint rectangle_index_buffer;
 	static GLuint rectangle_texture;
 
-	void DrawChessBoard() const;
+	void DrawChessBoard(glm::uvec2 const& drawable_size) const;
 
 private:
 	GLuint program = 0;
@@ -33,8 +34,8 @@ private:
 
 	struct Rectangle
 	{
-		GLuint vertex_array = -1U;
-		GLuint vertex_buffer = -1U;
+		//GLuint vertex_array = -1U;
+		//GLuint vertex_buffer = -1U;
 		glm::vec4 rectangle_size;
 		glm::u8vec4 color {0xff, 0xff, 0xff, 0xff};
 	};
