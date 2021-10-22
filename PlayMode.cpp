@@ -123,6 +123,7 @@ void PlayMode::draw(glm::uvec2 const& drawable_size) {
 	//GL_ERRORS();
 
 	chessboard_texture_program->DrawChessBoard(drawable_size);
+	chessboard_texture_program->DrawChessPieces(drawable_size);
 
 	{ //use DrawLines to overlay some text:
 		glDisable(GL_DEPTH_TEST);

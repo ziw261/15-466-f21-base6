@@ -33,6 +33,7 @@ static bool GLLogCall(const char* function, const char* file, int line)
 
 Load < ChessBoardTextureProgram > chessboard_texture_program(LoadTagEarly);
 
+GLuint ChessBoardTextureProgram::circle_index_buffer = -1U;
 GLuint ChessBoardTextureProgram::rectangle_index_buffer = -1U;
 GLuint ChessBoardTextureProgram::rectangle_texture = 0;
 
@@ -41,6 +42,24 @@ static Load <void> load_rectangle_index_buffer(LoadTagEarly, []() {
 	GLCall(glGenBuffers(1, &ChessBoardTextureProgram::rectangle_index_buffer));
 	GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ChessBoardTextureProgram::rectangle_index_buffer));
 	GLCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), rectangle_index_buffer_content, GL_STATIC_DRAW));
+});
+
+static Load <void> load_circle_index_buffer(LoadTagEarly, []() {
+	unsigned int circle_index_buffer_content[CIRCLE_VERTICES_COUNT * 3];
+	for (size_t i = 0; i < CIRCLE_VERTICES_COUNT - 1; i++)
+	{
+		circle_index_buffer_content[i * 3] = 0;
+		circle_index_buffer_content[i * 3 + 1] = (unsigned int)i + 1;
+		circle_index_buffer_content[i * 3 + 2] = (unsigned int)i + 2;
+	}
+
+	circle_index_buffer_content[CIRCLE_VERTICES_COUNT * 3 - 3] = 0;
+	circle_index_buffer_content[CIRCLE_VERTICES_COUNT * 3 - 2] = CIRCLE_VERTICES_COUNT;
+	circle_index_buffer_content[CIRCLE_VERTICES_COUNT * 3 - 1] = 1;
+
+	GLCall(glGenBuffers(1, &ChessBoardTextureProgram::circle_index_buffer));
+	GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ChessBoardTextureProgram::circle_index_buffer));
+	GLCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, 3 * CIRCLE_VERTICES_COUNT * sizeof(unsigned int), circle_index_buffer_content, GL_STATIC_DRAW));
 });
 
 static Load <void> load_rectangle_texture(LoadTagEarly, []() {
@@ -95,6 +114,12 @@ ChessBoardTextureProgram::ChessBoardTextureProgram()
 	GLCall(glUseProgram(0));
 
 	SetupChessBoard();
+
+	// DELETE IT
+	#define HEX_TO_U8VEC42( HX ) (glm::u8vec4( (HX >> 24) & 0xff, (HX >> 16) & 0xff, (HX >> 8) & 0xff, (HX) & 0xff ))
+	const glm::u8vec4 yl_color = HEX_TO_U8VEC42(0xfbff12ff);
+	#undef HEX_TO_U8VEC42
+	SetupChessPiece(glm::vec2(-540.0f, -540.0f), yl_color);
 }
 
 ChessBoardTextureProgram::~ChessBoardTextureProgram()
@@ -246,5 +271,59 @@ void ChessBoardTextureProgram::DrawChessBoard(glm::uvec2 const& drawable_size) c
 		//	GLCall(glBindTexture(GL_TEXTURE_2D, rectangle_texture));
 		//	GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, static_cast<const void*>(0)));
 		//}
+	}
+}
+
+void ChessBoardTextureProgram::SetupChessPiece(glm::vec2 origin, glm::u8vec4 color)
+{
+	Circle c1;
+	c1.origin = origin;
+	c1.color = color;
+
+	chess_pieces.push_back(c1);
+}
+
+void ChessBoardTextureProgram::DrawChessPieces(glm::uvec2 const& drawable_size) const 
+{
+	for (const auto& c : chess_pieces)
+	{
+		GLuint vertex_buffer = -1U;
+		GLuint vertex_array = -1U;
+
+		GLCall(glGenBuffers(1, &vertex_buffer));
+		vertex_array = GetVao(vertex_buffer);
+		GLCall(glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer));
+
+		std::vector<Vertex> vertices(CIRCLE_VERTICES_COUNT + 1);
+
+		Vertex& o = vertices[0];
+		o.Color = c.color;
+		o.Position[0] = (c.origin[0] / drawable_size.x);
+		o.Position[1] = (c.origin[1] / drawable_size.y);
+		
+		float angle_diff = 360.0f / CIRCLE_VERTICES_COUNT;
+		float angle = 0.0f;
+
+		for (size_t i = 0; i < CIRCLE_VERTICES_COUNT; i++)
+		{
+			Vertex& v = vertices[i + 1];
+			v.Color = c.color;
+			v.Position[0] = (c.origin[0] + CHESS_PIECE_RADIUS * glm::cos(glm::radians(angle))) / drawable_size.x;
+			v.Position[1] = (c.origin[1] + CHESS_PIECE_RADIUS * glm::sin(glm::radians(angle))) / drawable_size.y;
+			angle += angle_diff;
+		}
+
+		GLCall(glBufferData(GL_ARRAY_BUFFER, (CIRCLE_VERTICES_COUNT + 1) * sizeof(Vertex), static_cast<const void*>(vertices.data()), GL_STATIC_DRAW));
+		
+
+		GLCall(glUseProgram(program));
+		GLCall(glBindVertexArray(vertex_array));
+		GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, circle_index_buffer));
+		GLCall(glActiveTexture(GL_TEXTURE0));
+		GLCall(glBindTexture(GL_TEXTURE_2D, rectangle_texture));
+		GLCall(glDrawElements(GL_TRIANGLES, CIRCLE_VERTICES_COUNT * 3, GL_UNSIGNED_INT, static_cast<const void*>(0)));
+
+		GLCall(glDeleteBuffers(1, &vertex_buffer));
+		GLCall(glDeleteVertexArrays(1, &vertex_array));
 	}
 }
