@@ -115,7 +115,7 @@ int main(int argc, char **argv) {
 						uint8_t right_count = c->recv_buffer[2];
 						uint8_t down_count = c->recv_buffer[3];
 						uint8_t up_count = c->recv_buffer[4];
-
+						 
 						player.left_presses += left_count;
 						player.right_presses += right_count;
 						player.down_presses += down_count;

@@ -1,7 +1,7 @@
 #include "Mode.hpp"
 
 #include "Connection.hpp"
-
+#include "ChessBoardData.hpp"
 #include "ColorTextureProgram.hpp"
 #include "ChessBoardTextureProgram.hpp"
 #include <glm/glm.hpp>
@@ -18,11 +18,16 @@ struct PlayMode : Mode {
 	virtual void update(float elapsed) override;
 	virtual void draw(glm::uvec2 const &drawable_size) override;
 
+	bool CheckMouseClickValid(const glm::uvec2& window_size);
+
 	//input tracking:
 	struct Button {
 		uint8_t downs = 0;
 		uint8_t pressed = 0;
 	} left, right, down, up;
+
+	glm::vec2 mouse_pos;
+	std::vector<ChessBoardTextureProgram::Circle> chess_pieces;
 
 	//last message from server:
 	std::string server_message;

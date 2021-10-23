@@ -17,65 +17,105 @@ PlayMode::~PlayMode() {
 
 bool PlayMode::handle_event(SDL_Event const& evt, glm::uvec2 const& window_size) {
 
-	if (evt.type == SDL_KEYDOWN) {
-		if (evt.key.repeat) {
-			//ignore repeats
-		}
-		else if (evt.key.keysym.sym == SDLK_a) {
-			left.downs += 1;
-			left.pressed = true;
-			return true;
-		}
-		else if (evt.key.keysym.sym == SDLK_d) {
-			right.downs += 1;
-			right.pressed = true;
-			return true;
-		}
-		else if (evt.key.keysym.sym == SDLK_w) {
-			up.downs += 1;
-			up.pressed = true;
-			return true;
-		}
-		else if (evt.key.keysym.sym == SDLK_s) {
-			down.downs += 1;
-			down.pressed = true;
-			return true;
-		}
+	//if (evt.type == SDL_KEYDOWN) {
+	//	if (evt.key.repeat) {
+	//		//ignore repeats
+	//	}
+	//	else if (evt.key.keysym.sym == SDLK_a) {
+	//		left.downs += 1;
+	//		left.pressed = true;
+	//		return true;
+	//	}
+	//	else if (evt.key.keysym.sym == SDLK_d) {
+	//		right.downs += 1;
+	//		right.pressed = true;
+	//		return true;
+	//	}
+	//	else if (evt.key.keysym.sym == SDLK_w) {
+	//		up.downs += 1;
+	//		up.pressed = true;
+	//		return true;
+	//	}
+	//	else if (evt.key.keysym.sym == SDLK_s) {
+	//		down.downs += 1;
+	//		down.pressed = true;
+	//		return true;
+	//	}
+	//}
+	//else if (evt.type == SDL_KEYUP) {
+	//	if (evt.key.keysym.sym == SDLK_a) {
+	//		left.pressed = false;
+	//		return true;
+	//	}
+	//	else if (evt.key.keysym.sym == SDLK_d) {
+	//		right.pressed = false;
+	//		return true;
+	//	}
+	//	else if (evt.key.keysym.sym == SDLK_w) {
+	//		up.pressed = false;
+	//		return true;
+	//	}
+	//	else if (evt.key.keysym.sym == SDLK_s) {
+	//		down.pressed = false;
+	//		return true;
+	//	}
+	//}
+
+	if (evt.type == SDL_MOUSEMOTION) {
+		mouse_pos = glm::vec2(
+			evt.motion.x / float(window_size.x) * 2 - 1.0f,
+			-evt.motion.y / float(window_size.y) * 2 + 1.0f
+		);
+
+		//std::cout << "Mouse motion: x: " << mouse_pos.x << ", y: " << mouse_pos.y << "\n";
+		return true;
 	}
-	else if (evt.type == SDL_KEYUP) {
-		if (evt.key.keysym.sym == SDLK_a) {
-			left.pressed = false;
-			return true;
-		}
-		else if (evt.key.keysym.sym == SDLK_d) {
-			right.pressed = false;
-			return true;
-		}
-		else if (evt.key.keysym.sym == SDLK_w) {
-			up.pressed = false;
-			return true;
-		}
-		else if (evt.key.keysym.sym == SDLK_s) {
-			down.pressed = false;
-			return true;
+	else if (evt.type == SDL_MOUSEBUTTONUP) {
+		if (evt.button.button == SDL_BUTTON_LEFT) {
+			//std::cout << mouse_pos.x << " " << mouse_pos.y << std::endl;
+			//std::cout << (-540.0f / (float)window_size.x) << " " << (-540.0f / (float)window_size.y) << std::endl;
+			//if (mouse_pos.x == -540.0f / (float)window_size.x)
+			//	if (mouse_pos.y == -540.0f / (float)window_size.y)
+			//	{
+			//	}
+			CheckMouseClickValid(window_size);
 		}
 	}
 
 	return false;
 }
 
+bool PlayMode::CheckMouseClickValid(const glm::uvec2& window_size) {
+	glm::vec2 pixel_size = {mouse_pos.x * window_size.x, mouse_pos.y * window_size.y};
+	int chessboard_x = static_cast<int>(std::round(pixel_size.x / CHESS_BOX_SIZE));
+	int chessboard_y = static_cast<int>(std::round(pixel_size.y / CHESS_BOX_SIZE));
+
+	int chesspiece_origin_x = chessboard_x * CHESS_BOX_SIZE;
+	int chesspiece_origin_y = chessboard_y * CHESS_BOX_SIZE;
+	
+	int piece_boundary_pos = static_cast<int>((CHESSBOARD_SIZE * 2 / CHESS_BOX_SIZE - 1) / 2);
+
+	if (chessboard_x < -piece_boundary_pos || chessboard_x > piece_boundary_pos
+		|| chessboard_y < -piece_boundary_pos || chessboard_y > piece_boundary_pos)
+		return false;
+
+	chessboard_texture_program->SetupChessPiece(chess_pieces, glm::vec2(chesspiece_origin_x, chesspiece_origin_y), glm::u8vec4(0xff));	
+
+	return true;
+}
+
 void PlayMode::update(float elapsed) {
 
 	//queue data for sending to server:
 	//TODO: send something that makes sense for your game
-	if (left.downs || right.downs || down.downs || up.downs) {
-		//send a five-byte message of type 'b':
-		client.connections.back().send('b');
-		client.connections.back().send(left.downs);
-		client.connections.back().send(right.downs);
-		client.connections.back().send(down.downs);
-		client.connections.back().send(up.downs);
-	}
+	//if (left.downs || right.downs || down.downs || up.downs) {
+	//	//send a five-byte message of type 'b':
+	//	client.connections.back().send('b');
+	//	client.connections.back().send(left.downs);
+	//	client.connections.back().send(right.downs);
+	//	client.connections.back().send(down.downs);
+	//	client.connections.back().send(up.downs);
+	//}
 
 	//reset button press counters:
 	left.downs = 0;
@@ -123,7 +163,7 @@ void PlayMode::draw(glm::uvec2 const& drawable_size) {
 	//GL_ERRORS();
 
 	chessboard_texture_program->DrawChessBoard(drawable_size);
-	chessboard_texture_program->DrawChessPieces(drawable_size);
+	chessboard_texture_program->DrawChessPieces(chess_pieces, drawable_size);
 
 	{ //use DrawLines to overlay some text:
 		glDisable(GL_DEPTH_TEST);

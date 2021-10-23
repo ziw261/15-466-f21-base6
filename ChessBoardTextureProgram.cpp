@@ -116,10 +116,10 @@ ChessBoardTextureProgram::ChessBoardTextureProgram()
 	SetupChessBoard();
 
 	// DELETE IT
-	#define HEX_TO_U8VEC42( HX ) (glm::u8vec4( (HX >> 24) & 0xff, (HX >> 16) & 0xff, (HX >> 8) & 0xff, (HX) & 0xff ))
-	const glm::u8vec4 yl_color = HEX_TO_U8VEC42(0xfbff12ff);
-	#undef HEX_TO_U8VEC42
-	SetupChessPiece(glm::vec2(-540.0f, -540.0f), yl_color);
+	//#define HEX_TO_U8VEC42( HX ) (glm::u8vec4( (HX >> 24) & 0xff, (HX >> 16) & 0xff, (HX >> 8) & 0xff, (HX) & 0xff ))
+	//const glm::u8vec4 yl_color = HEX_TO_U8VEC42(0xfbff12ff);
+	//#undef HEX_TO_U8VEC42
+	//SetupChessPiece(glm::vec2(-540.0f, -540.0f), yl_color);
 }
 
 ChessBoardTextureProgram::~ChessBoardTextureProgram()
@@ -202,18 +202,18 @@ void ChessBoardTextureProgram::SetupChessBoard()
 	for (size_t i = 1; i < 14; i++)
 	{
 		Rectangle l;
-		l.rectangle_size = glm::vec4( -CHESSBOARD_SIZE + i * 90,
+		l.rectangle_size = glm::vec4( -CHESSBOARD_SIZE + i * CHESS_BOX_SIZE,
 										-CHESSBOARD_SIZE,
-									  -CHESSBOARD_SIZE + CHESSBOARD_BOARDER + i * 90,
+									  -CHESSBOARD_SIZE + CHESSBOARD_BOARDER + i * CHESS_BOX_SIZE,
 										CHESSBOARD_SIZE);
 		l.color = bd_color;
 		board_assets.push_back(l);
 
 		Rectangle l2;
 		l2.rectangle_size = glm::vec4( -CHESSBOARD_SIZE,
-										-CHESSBOARD_SIZE + i * 90,
+										-CHESSBOARD_SIZE + i * CHESS_BOX_SIZE,
 										CHESSBOARD_SIZE,
-										-CHESSBOARD_SIZE + i * 90 + CHESSBOARD_BOARDER);
+										-CHESSBOARD_SIZE + i * CHESS_BOX_SIZE + CHESSBOARD_BOARDER);
 		l2.color = bd_color;
 		board_assets.push_back(l2);
 	}
@@ -274,7 +274,7 @@ void ChessBoardTextureProgram::DrawChessBoard(glm::uvec2 const& drawable_size) c
 	}
 }
 
-void ChessBoardTextureProgram::SetupChessPiece(glm::vec2 origin, glm::u8vec4 color)
+void ChessBoardTextureProgram::SetupChessPiece(std::vector<Circle>& chess_pieces, const glm::vec2 origin, const glm::u8vec4 color) const
 {
 	Circle c1;
 	c1.origin = origin;
@@ -283,7 +283,7 @@ void ChessBoardTextureProgram::SetupChessPiece(glm::vec2 origin, glm::u8vec4 col
 	chess_pieces.push_back(c1);
 }
 
-void ChessBoardTextureProgram::DrawChessPieces(glm::uvec2 const& drawable_size) const 
+void ChessBoardTextureProgram::DrawChessPieces(std::vector<Circle>& chess_pieces, const glm::uvec2& drawable_size) const 
 {
 	for (const auto& c : chess_pieces)
 	{
