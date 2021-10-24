@@ -75,7 +75,6 @@ int main(int argc, char **argv) {
 	int8_t last_pos_x = 0;
 	int8_t last_pos_y = 0;
 	size_t remaining_pos = chess_board.size() * chess_board[0].size();
-	bool is_game_over = false;
 	std::string game_over_message = "";
 
 
@@ -262,13 +261,11 @@ int main(int argc, char **argv) {
 		// Game state logic update
 		if (game_state == 1 && color_to_draw != 0) {
 			if (remaining_pos == 0) {
-				is_game_over = true;
 				game_state = 2;
 				game_over_message = "Game is a tie.";
 			}
 			else if (judge_game(last_pos_x + NUM_PIECES_PER_LINE_HALF, last_pos_y + NUM_PIECES_PER_LINE_HALF, color_to_draw))
 			{
-				is_game_over = true;
 				game_state = 2;
 				game_over_message = "Player" + std::to_string(color_to_draw) + " wins!";
 			}
