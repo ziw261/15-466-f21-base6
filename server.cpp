@@ -67,11 +67,103 @@ int main(int argc, char **argv) {
 	std::unordered_map< Connection *, PlayerInfo > players;
 
 	// game state:
-	uint8_t curr_player = 1;
 	std::vector<std::vector<int>> chess_board(NUM_PIECES_PER_LINE_HALF * 2 + 1, std::vector<int>(NUM_PIECES_PER_LINE_HALF * 2 + 1, 0));
+	// 0: waiting for player, 1: playing
+	uint8_t game_state = 0;
+	uint8_t curr_player = 0;
+	uint8_t color_to_draw = 0;
 	int8_t last_pos_x = 0;
 	int8_t last_pos_y = 0;
-	uint8_t color_to_draw = 0;
+	size_t remaining_pos = chess_board.size() * chess_board[0].size();
+	bool is_game_over = false;
+	std::string game_over_message = "";
+
+
+	// Code inspired by : https://github.com/tdang33/Gomoku-Five-in-a-row-/blob/master/src/Board.cpp
+	auto judge_game = [&](int x, int y, uint8_t value) {
+		bool res = false;
+		uint8_t max_size = NUM_PIECES_PER_LINE_HALF * 2;
+		// Check column
+		{
+			uint8_t sum = 1;
+			uint8_t count = 1;
+			while (y - count >= 0 && chess_board[x][y - count] == value)
+			{
+				sum++;
+				count++;
+			}
+			count = 1;
+			while (y + count <= max_size && chess_board[x][y + count] == value)
+			{
+				sum++;
+				count++;
+			}
+			res = sum >= NUM_PIECE_TO_WIN;
+		}
+
+		if (res) return true;
+
+		// Check row
+		{
+			uint8_t sum = 1;
+			uint8_t count = 1;
+			while (x - count >= 0 && chess_board[x - count][y] == value)
+			{
+				sum++;
+				count++;
+			}
+			count = 1;
+			while (x + count <= max_size && chess_board[x + count][y] == value)
+			{
+				sum++;
+				count++;
+			}
+			res = sum >= NUM_PIECE_TO_WIN;
+		}
+
+		if (res) return true;
+
+		//// Check diag 1
+		{
+			uint8_t sum = 1;
+			uint8_t count = 1;
+			while (x - count >= 0 && y - count >= 0 && chess_board[x - count][y - count] == value)
+			{
+				sum++;
+				count++;
+			}
+			count = 1;
+			while (x + count <= max_size && y + count <= max_size && chess_board[x + count][y + count] == value)
+			{
+				sum++;
+				count++;
+			}
+			res = sum >= NUM_PIECE_TO_WIN;
+		}
+
+		if (res) return true;
+
+		//// Check diag 2
+		{
+			uint8_t sum = 1;
+			uint8_t count = 1;
+			while (x - count >= 0 && y + count <= max_size && chess_board[x - count][y + count] == value)
+			{
+				sum++;
+				count++;
+			}
+			count = 1;
+			while (x + count <= max_size && y - count >= 0 && chess_board[x + count][y - count] == value)
+			{
+				sum++;
+				count++;
+			}
+			res = sum >= NUM_PIECE_TO_WIN;
+		}
+
+		return res;
+	};
+
 
 	while (true) {
 		static auto next_tick = std::chrono::steady_clock::now() + std::chrono::duration< double >(ServerTick);
@@ -87,10 +179,16 @@ int main(int argc, char **argv) {
 				if (evt == Connection::OnOpen) {
 					//client connected:
 
-					if(players.size() < PLAYER_NUM)
+					if (players.size() < PLAYER_NUM) {
 						//create some player info for them:
 						players.emplace(c, PlayerInfo());
+					}
 
+					// Start the game when all players are ready
+					if (players.size() == PLAYER_NUM && /*curr_player == 0*/ game_state == 0) {
+						//curr_player = 1;
+						game_state = 1;
+					}
 
 				} else if (evt == Connection::OnClose) {
 					//client disconnected:
@@ -103,6 +201,7 @@ int main(int argc, char **argv) {
 
 				} else { assert(evt == Connection::OnRecv);
 					
+
 					//look up in players list:
 					auto f = players.find(c);
 					assert(f != players.end());
@@ -144,13 +243,12 @@ int main(int argc, char **argv) {
 								last_pos_y = pos_y;
 								color_to_draw = curr_player;
 								curr_player = (curr_player + 1 - 1) % PLAYER_NUM + 1;
+								remaining_pos = remaining_pos == 0 ? 0 : remaining_pos - 1;
 							}
 							else
 							{
 								std::cout << "This place already has a piece" << std::endl;
 							}
-
-							//curr_player = (curr_player + 1) % PLAYER_NUM;
 						}
 
 						c->recv_buffer.erase(c->recv_buffer.begin(), c->recv_buffer.begin() + 3);
@@ -159,9 +257,28 @@ int main(int argc, char **argv) {
 			}, remain);
 		}
 
+//		std::cout << last_pos_x + NUM_PIECES_PER_LINE_HALF << "  " << last_pos_y + NUM_PIECES_PER_LINE_HALF << "  " << color_to_draw << std::endl;
+
+		// Game state logic update
+		if (game_state == 1 && color_to_draw != 0) {
+			if (remaining_pos == 0) {
+				is_game_over = true;
+				game_state = 2;
+				game_over_message = "Game is a tie.";
+			}
+			else if (judge_game(last_pos_x + NUM_PIECES_PER_LINE_HALF, last_pos_y + NUM_PIECES_PER_LINE_HALF, color_to_draw))
+			{
+				is_game_over = true;
+				game_state = 2;
+				game_over_message = "Player" + std::to_string(color_to_draw) + " wins!";
+			}
+		}
+
 		//update current game state
 		//TODO: replace with *your* game state update
+		std::string message_to_sent = "";
 		std::string status_message = "";
+		std::string other_message = "";
 		//int32_t overall_sum = 0;
 		//for (auto &[c, player] : players) {
 		//	(void)c; //work around "unused variable" warning on whatever version of g++ github actions is running
@@ -185,19 +302,43 @@ int main(int argc, char **argv) {
 		//status_message += " = " + std::to_string(overall_sum);
 		//std::cout << status_message << std::endl; //DEBUG
 
-		
+		//if (curr_player != 0)
 		status_message = std::to_string(color_to_draw) + "," + std::to_string(last_pos_x) + "," + std::to_string(last_pos_y);
+
 		//send updated game state to all clients
 		//TODO: update for your game state
 		for (auto &[c, player] : players) {
-			(void)player; //work around "unused variable" warning on whatever g++ github actions uses
+			//(void)player; //work around "unused variable" warning on whatever g++ github actions uses
 			//send an update starting with 'm', a 24-bit size, and a blob of text:
+			other_message = "";
+			other_message = other_message + "," + player.name;
+			if (curr_player == 0 && game_state == 0)
+				other_message = other_message + "," + "Waiting for other players to join . . .";
+			else if ((player.name[6] - '0') == curr_player)
+				other_message = other_message + "," + "It's your turn.";
+			else if (game_state == 1)
+				other_message = other_message + "," + "Player" + std::to_string(curr_player) + " is deciding . . .";
+			else if (game_state == 2)
+				other_message = other_message + "," + game_over_message;
+
+			message_to_sent = status_message + other_message;
+			
 			c->send('m');
-			c->send(uint8_t(status_message.size() >> 16));
-			c->send(uint8_t((status_message.size() >> 8) % 256));
-			c->send(uint8_t(status_message.size() % 256));
-			c->send_buffer.insert(c->send_buffer.end(), status_message.begin(), status_message.end());
+			c->send(uint8_t(message_to_sent.size() >> 16));
+			c->send(uint8_t((message_to_sent.size() >> 8) % 256));
+			c->send(uint8_t(message_to_sent.size() % 256));
+			c->send_buffer.insert(c->send_buffer.end(), message_to_sent.begin(), message_to_sent.end());
 		}
+
+
+
+
+		if (game_state == 0)
+			curr_player = 0;
+		else if (game_state == 1 && curr_player == 0)
+			curr_player = 1;
+		else if (game_state == 2)
+			curr_player = 0;
 	}
 
 	return 0;

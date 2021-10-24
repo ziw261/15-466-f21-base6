@@ -183,21 +183,27 @@ void PlayMode::update(float elapsed) {
 
 	size_t dot_pos1 = server_message.find(",");
 	size_t dot_pos2 = server_message.find(",", dot_pos1 + 1);
+	size_t dot_pos3 = server_message.find(",", dot_pos2 + 1);
+	size_t dot_pos4 = server_message.find(",", dot_pos3 + 1);
 
 	int color_to_draw = std::stoi(server_message.substr(0, dot_pos1));
 	//std::cout << "First stoi: " << color_to_draw << std::endl;
 	int chessboard_x = std::stoi(server_message.substr(dot_pos1+1, dot_pos2 - dot_pos1 - 1));
 	//std::cout << "Second stoi: " << chessboard_x << std::endl;
-	int chessboard_y = std::stoi(server_message.substr(dot_pos2 + 1));
+	int chessboard_y = std::stoi(server_message.substr(dot_pos2+1, dot_pos3 - dot_pos2 - 1));
 	//std::cout << "Third stoi: " << chessboard_x << std::endl;
 	int chesspiece_origin_x = (chessboard_x) * CHESS_BOX_SIZE;
 	int chesspiece_origin_y = (chessboard_y) * CHESS_BOX_SIZE;
+
+	//if (color_to_draw == -1)
+	player_name = server_message.substr(dot_pos3+1, dot_pos4 - dot_pos3 - 1);
+
+	status_message = server_message.substr(dot_pos4 + 1);
 
 	if (chess_board[chessboard_x + NUM_PIECES_PER_LINE_HALF][chessboard_y + NUM_PIECES_PER_LINE_HALF] == 0 && color_to_draw != 0) {
 		chess_board[chessboard_x + NUM_PIECES_PER_LINE_HALF][chessboard_y + NUM_PIECES_PER_LINE_HALF] = color_to_draw;
 		chessboard_texture_program->SetupChessPiece(chess_pieces, glm::vec2(chesspiece_origin_x, chesspiece_origin_y), chess_piece_colors[color_to_draw]);
 	}
-
 }
 
 void PlayMode::draw(glm::uvec2 const& drawable_size) {
@@ -231,8 +237,8 @@ void PlayMode::draw(glm::uvec2 const& drawable_size) {
 				glm::u8vec4(0xff, 0xff, 0xff, 0x00));
 		};
 
-		draw_text(glm::vec2(-aspect + 0.1f, 0.0f), server_message, 0.09f);
+		draw_text(glm::vec2(-aspect + 0.1f, 0.0f), player_name, 0.09f);
 
-		draw_text(glm::vec2(-aspect + 0.1f, -0.9f), "(press WASD to change your total)", 0.09f);
+		draw_text(glm::vec2(-aspect + 0.1f, -0.9f), status_message, 0.09f);
 	}
 }

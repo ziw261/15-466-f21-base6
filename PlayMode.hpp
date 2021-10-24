@@ -40,6 +40,9 @@ struct PlayMode : Mode {
 	//last message from server:
 	std::string server_message;
 
+	std::string player_name;
+	std::string status_message = "Waiting for other players to join . . .";
+
 	//connection to server:
 	Client &client;
 };
