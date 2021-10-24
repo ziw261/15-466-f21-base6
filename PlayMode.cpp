@@ -10,8 +10,11 @@
 #include <random>
 
 PlayMode::PlayMode(Client& client_) : client(client_) {
-	std::vector<std::vector<int>> chess_board(NUM_PIECES_PER_LINE_HALF * 2, std::vector<int>(NUM_PIECES_PER_LINE_HALF * 2, 0));
+	chess_board = std::vector<std::vector<int>>(NUM_PIECES_PER_LINE_HALF * 2 + 1, std::vector<int>(NUM_PIECES_PER_LINE_HALF * 2 + 1, 0));
+	chess_piece_colors.push_back(HEX_TO_U8VEC4(0x00000000));
 	chess_piece_colors.push_back(HEX_TO_U8VEC4(0xd9cfc1ff));
+	chess_piece_colors.push_back(HEX_TO_U8VEC4(0x020122ff));
+	chess_piece_colors.push_back(HEX_TO_U8VEC4(0xA20021ff));
 }
 
 PlayMode::~PlayMode() {
@@ -189,7 +192,12 @@ void PlayMode::update(float elapsed) {
 	//std::cout << "Third stoi: " << chessboard_x << std::endl;
 	int chesspiece_origin_x = (chessboard_x) * CHESS_BOX_SIZE;
 	int chesspiece_origin_y = (chessboard_y) * CHESS_BOX_SIZE;
-	chessboard_texture_program->SetupChessPiece(chess_pieces, glm::vec2(chesspiece_origin_x, chesspiece_origin_y), chess_piece_colors[color_to_draw - 1]);
+
+	if (chess_board[chessboard_x + NUM_PIECES_PER_LINE_HALF][chessboard_y + NUM_PIECES_PER_LINE_HALF] == 0 && color_to_draw != 0) {
+		chess_board[chessboard_x + NUM_PIECES_PER_LINE_HALF][chessboard_y + NUM_PIECES_PER_LINE_HALF] = color_to_draw;
+		chessboard_texture_program->SetupChessPiece(chess_pieces, glm::vec2(chesspiece_origin_x, chesspiece_origin_y), chess_piece_colors[color_to_draw]);
+	}
+
 }
 
 void PlayMode::draw(glm::uvec2 const& drawable_size) {

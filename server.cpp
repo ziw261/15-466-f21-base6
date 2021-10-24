@@ -68,10 +68,10 @@ int main(int argc, char **argv) {
 
 	// game state:
 	uint8_t curr_player = 1;
-	std::vector<std::vector<int>> chess_board(NUM_PIECES_PER_LINE_HALF * 2, std::vector<int>(NUM_PIECES_PER_LINE_HALF * 2, 0));
+	std::vector<std::vector<int>> chess_board(NUM_PIECES_PER_LINE_HALF * 2 + 1, std::vector<int>(NUM_PIECES_PER_LINE_HALF * 2 + 1, 0));
 	int8_t last_pos_x = 0;
 	int8_t last_pos_y = 0;
-
+	uint8_t color_to_draw = 0;
 
 	while (true) {
 		static auto next_tick = std::chrono::steady_clock::now() + std::chrono::duration< double >(ServerTick);
@@ -137,12 +137,19 @@ int main(int argc, char **argv) {
 							int8_t pos_y = c->recv_buffer[2];
 
 
-							// TODO: check valid
+							// Check valid
+							if (chess_board[pos_x + NUM_PIECES_PER_LINE_HALF][pos_y + NUM_PIECES_PER_LINE_HALF] == 0) {
+								chess_board[pos_x + NUM_PIECES_PER_LINE_HALF][pos_y + NUM_PIECES_PER_LINE_HALF] = curr_player;
+								last_pos_x = pos_x;
+								last_pos_y = pos_y;
+								color_to_draw = curr_player;
+								curr_player = (curr_player + 1 - 1) % PLAYER_NUM + 1;
+							}
+							else
+							{
+								std::cout << "This place already has a piece" << std::endl;
+							}
 
-
-							// if valid
-							last_pos_x = pos_x;
-							last_pos_y = pos_y;
 							//curr_player = (curr_player + 1) % PLAYER_NUM;
 						}
 
@@ -179,7 +186,7 @@ int main(int argc, char **argv) {
 		//std::cout << status_message << std::endl; //DEBUG
 
 		
-		status_message = std::to_string(curr_player) + "," + std::to_string(last_pos_x) + "," + std::to_string(last_pos_y);
+		status_message = std::to_string(color_to_draw) + "," + std::to_string(last_pos_x) + "," + std::to_string(last_pos_y);
 		//send updated game state to all clients
 		//TODO: update for your game state
 		for (auto &[c, player] : players) {
