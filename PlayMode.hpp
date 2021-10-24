@@ -26,8 +26,16 @@ struct PlayMode : Mode {
 		uint8_t pressed = 0;
 	} left, right, down, up;
 
+
+	//uint8_t game_state = 0;
+	bool should_send = false;
+
+	std::vector<uint8_t> message_buffer;
+	std::pair<int8_t, int8_t> send_pos;
+	std::vector<std::vector<int>> chess_board;
 	glm::vec2 mouse_pos;
 	std::vector<ChessBoardTextureProgram::Circle> chess_pieces;
+	std::vector<glm::u8vec4> chess_piece_colors;
 
 	//last message from server:
 	std::string server_message;

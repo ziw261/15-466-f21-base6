@@ -114,12 +114,6 @@ ChessBoardTextureProgram::ChessBoardTextureProgram()
 	GLCall(glUseProgram(0));
 
 	SetupChessBoard();
-
-	// DELETE IT
-	//#define HEX_TO_U8VEC42( HX ) (glm::u8vec4( (HX >> 24) & 0xff, (HX >> 16) & 0xff, (HX >> 8) & 0xff, (HX) & 0xff ))
-	//const glm::u8vec4 yl_color = HEX_TO_U8VEC42(0xfbff12ff);
-	//#undef HEX_TO_U8VEC42
-	//SetupChessPiece(glm::vec2(-540.0f, -540.0f), yl_color);
 }
 
 ChessBoardTextureProgram::~ChessBoardTextureProgram()
@@ -149,13 +143,11 @@ GLuint ChessBoardTextureProgram::GetVao(GLuint vertex_buffer) const
 
 void ChessBoardTextureProgram::SetupChessBoard() 
 {
-	#define HEX_TO_U8VEC4( HX ) (glm::u8vec4( (HX >> 24) & 0xff, (HX >> 16) & 0xff, (HX >> 8) & 0xff, (HX) & 0xff ))
 	//const glm::u8vec4 bg_color = HEX_TO_U8VEC4(0x193b59ff);
 	const glm::u8vec4 cb_color = HEX_TO_U8VEC4(0xeab676ff);
 	const glm::u8vec4 bd_color = HEX_TO_U8VEC4(0x0c0f0aff);
 	//const glm::u8vec4 rd_color = HEX_TO_U8VEC4(0xff206eff);
 	//const glm::u8vec4 yl_color = HEX_TO_U8VEC4(0xfbff12ff);
-	#undef HEX_TO_U8VEC4
 
 	//4 Chess boarders
 	Rectangle b1;
@@ -202,22 +194,21 @@ void ChessBoardTextureProgram::SetupChessBoard()
 	for (size_t i = 1; i < 14; i++)
 	{
 		Rectangle l;
-		l.rectangle_size = glm::vec4( -CHESSBOARD_SIZE + i * CHESS_BOX_SIZE,
-										-CHESSBOARD_SIZE,
-									  -CHESSBOARD_SIZE + CHESSBOARD_BOARDER + i * CHESS_BOX_SIZE,
-										CHESSBOARD_SIZE);
+		l.rectangle_size = glm::vec4(-CHESSBOARD_SIZE + i * CHESS_BOX_SIZE,
+			-CHESSBOARD_SIZE,
+			-CHESSBOARD_SIZE + CHESSBOARD_BOARDER + i * CHESS_BOX_SIZE,
+			CHESSBOARD_SIZE);
 		l.color = bd_color;
 		board_assets.push_back(l);
 
 		Rectangle l2;
-		l2.rectangle_size = glm::vec4( -CHESSBOARD_SIZE,
-										-CHESSBOARD_SIZE + i * CHESS_BOX_SIZE,
-										CHESSBOARD_SIZE,
-										-CHESSBOARD_SIZE + i * CHESS_BOX_SIZE + CHESSBOARD_BOARDER);
+		l2.rectangle_size = glm::vec4(-CHESSBOARD_SIZE,
+			-CHESSBOARD_SIZE + i * CHESS_BOX_SIZE,
+			CHESSBOARD_SIZE,
+			-CHESSBOARD_SIZE + i * CHESS_BOX_SIZE + CHESSBOARD_BOARDER);
 		l2.color = bd_color;
 		board_assets.push_back(l2);
 	}
-
 	//std::cout << board_assets.size() << std::endl;
 	//for (auto& r : board_assets)
 	//{

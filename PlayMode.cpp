@@ -10,6 +10,8 @@
 #include <random>
 
 PlayMode::PlayMode(Client& client_) : client(client_) {
+	std::vector<std::vector<int>> chess_board(NUM_PIECES_PER_LINE_HALF * 2, std::vector<int>(NUM_PIECES_PER_LINE_HALF * 2, 0));
+	chess_piece_colors.push_back(HEX_TO_U8VEC4(0xd9cfc1ff));
 }
 
 PlayMode::~PlayMode() {
@@ -78,7 +80,18 @@ bool PlayMode::handle_event(SDL_Event const& evt, glm::uvec2 const& window_size)
 			//	if (mouse_pos.y == -540.0f / (float)window_size.y)
 			//	{
 			//	}
-			CheckMouseClickValid(window_size);
+			bool res = CheckMouseClickValid(window_size);
+			if (!res)
+				should_send = false;
+			else
+				should_send = true;
+			//else if (message_buffer.empty()) 
+			//{
+			//	message_buffer.push_back('a');
+			//	message_buffer.push_back(send_pos.first);
+			//	message.buffer.push_back(send_pos.second);
+			//}
+
 		}
 	}
 
@@ -90,8 +103,8 @@ bool PlayMode::CheckMouseClickValid(const glm::uvec2& window_size) {
 	int chessboard_x = static_cast<int>(std::round(pixel_size.x / CHESS_BOX_SIZE));
 	int chessboard_y = static_cast<int>(std::round(pixel_size.y / CHESS_BOX_SIZE));
 
-	int chesspiece_origin_x = chessboard_x * CHESS_BOX_SIZE;
-	int chesspiece_origin_y = chessboard_y * CHESS_BOX_SIZE;
+	//int chesspiece_origin_x = chessboard_x * CHESS_BOX_SIZE;
+	//int chesspiece_origin_y = chessboard_y * CHESS_BOX_SIZE;
 	
 	int piece_boundary_pos = static_cast<int>((CHESSBOARD_SIZE * 2 / CHESS_BOX_SIZE - 1) / 2);
 
@@ -99,8 +112,10 @@ bool PlayMode::CheckMouseClickValid(const glm::uvec2& window_size) {
 		|| chessboard_y < -piece_boundary_pos || chessboard_y > piece_boundary_pos)
 		return false;
 
-	chessboard_texture_program->SetupChessPiece(chess_pieces, glm::vec2(chesspiece_origin_x, chesspiece_origin_y), glm::u8vec4(0xff));	
+	//chessboard_texture_program->SetupChessPiece(chess_pieces, glm::vec2(chesspiece_origin_x, chesspiece_origin_y), glm::u8vec4(0xff));	
 
+	send_pos.first = chessboard_x;
+	send_pos.second = chessboard_y;
 	return true;
 }
 
@@ -116,12 +131,20 @@ void PlayMode::update(float elapsed) {
 	//	client.connections.back().send(down.downs);
 	//	client.connections.back().send(up.downs);
 	//}
-
 	//reset button press counters:
-	left.downs = 0;
-	right.downs = 0;
-	up.downs = 0;
-	down.downs = 0;
+	//left.downs = 0;
+	//right.downs = 0;
+	//up.downs = 0;
+	//down.downs = 0;
+
+	if (should_send) {
+		client.connections.back().send('a');
+		client.connections.back().send(send_pos.first);
+		client.connections.back().send(send_pos.second);
+	}
+
+	should_send = false;
+
 
 	//send/receive data:
 	client.poll([this](Connection* c, Connection::Event event) {
@@ -154,6 +177,19 @@ void PlayMode::update(float elapsed) {
 			}
 		}
 		}, 0.0);
+
+	size_t dot_pos1 = server_message.find(",");
+	size_t dot_pos2 = server_message.find(",", dot_pos1 + 1);
+
+	int color_to_draw = std::stoi(server_message.substr(0, dot_pos1));
+	//std::cout << "First stoi: " << color_to_draw << std::endl;
+	int chessboard_x = std::stoi(server_message.substr(dot_pos1+1, dot_pos2 - dot_pos1 - 1));
+	//std::cout << "Second stoi: " << chessboard_x << std::endl;
+	int chessboard_y = std::stoi(server_message.substr(dot_pos2 + 1));
+	//std::cout << "Third stoi: " << chessboard_x << std::endl;
+	int chesspiece_origin_x = (chessboard_x) * CHESS_BOX_SIZE;
+	int chesspiece_origin_y = (chessboard_y) * CHESS_BOX_SIZE;
+	chessboard_texture_program->SetupChessPiece(chess_pieces, glm::vec2(chesspiece_origin_x, chesspiece_origin_y), chess_piece_colors[color_to_draw - 1]);
 }
 
 void PlayMode::draw(glm::uvec2 const& drawable_size) {
