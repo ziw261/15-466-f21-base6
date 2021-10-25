@@ -178,13 +178,13 @@ int main(int argc, char **argv) {
 				if (evt == Connection::OnOpen) {
 					//client connected:
 
-					if (players.size() < PLAYER_NUM) {
+					//if (players.size() < PLAYER_NUM) {
 						//create some player info for them:
 						players.emplace(c, PlayerInfo());
-					}
+					//}
 
 					// Start the game when all players are ready
-					if (players.size() == PLAYER_NUM && /*curr_player == 0*/ game_state == 0) {
+					if (players.size() >= PLAYER_NUM && game_state == 0) {
 						//curr_player = 1;
 						game_state = 1;
 					}
@@ -200,7 +200,6 @@ int main(int argc, char **argv) {
 
 				} else { assert(evt == Connection::OnRecv);
 					
-
 					//look up in players list:
 					auto f = players.find(c);
 					assert(f != players.end());
