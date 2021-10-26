@@ -5,12 +5,6 @@
 #include "Load.hpp"
 #include "Scene.hpp"
 
-//#define CHESSBOARD_SIZE 630.0f
-//#define CHESSBOARD_BOARDER 5.0f
-//#define CHESSBOX_SIZE 2.0f
-//#define CIRCLE_VERTICES_COUNT 36
-//#define CHESS_PIECE_RADIUS 45
-
 struct ChessBoardTextureProgram
 {
 	ChessBoardTextureProgram();
@@ -25,8 +19,6 @@ struct ChessBoardTextureProgram
 
 	struct Rectangle
 	{
-		//GLuint vertex_array = -1U;
-		//GLuint vertex_buffer = -1U;
 		glm::vec4 rectangle_size;
 		glm::u8vec4 color{ 0xff, 0xff, 0xff, 0xff };
 	};
@@ -51,8 +43,6 @@ private:
 	GLuint Position_vec4 = -1U;
 	GLuint Color_vec4 = -1U;
 	GLuint TexCoord_vec2 = -1U;
-
-
 
 	std::vector <Rectangle> board_assets;
 

@@ -1,3 +1,4 @@
+/* Code structure inspiration: https://github.com/GenBrg/MarryPrincess/blob/master/Texture2DProgram.cpp */
 #include "ChessBoardTextureProgram.hpp"
 #include <signal.h>
 #include "gl_compile_program.hpp"
@@ -74,6 +75,7 @@ static Load <void> load_rectangle_texture(LoadTagEarly, []() {
 	GLCall(glBindTexture(GL_TEXTURE_2D, 0));
 });
 
+// Code from https://github.com/GenBrg/MarryPrincess/blob/master/Texture2DProgram.cpp
 ChessBoardTextureProgram::ChessBoardTextureProgram()
 {
 	GLCall(program = gl_compile_program(
@@ -122,6 +124,7 @@ ChessBoardTextureProgram::~ChessBoardTextureProgram()
 	program = 0;
 }
 
+// Code from https://github.com/GenBrg/MarryPrincess/blob/master/Texture2DProgram.cpp
 GLuint ChessBoardTextureProgram::GetVao(GLuint vertex_buffer) const 
 {
 	GLuint vao;
@@ -143,11 +146,8 @@ GLuint ChessBoardTextureProgram::GetVao(GLuint vertex_buffer) const
 
 void ChessBoardTextureProgram::SetupChessBoard() 
 {
-	//const glm::u8vec4 bg_color = HEX_TO_U8VEC4(0x193b59ff);
 	const glm::u8vec4 cb_color = HEX_TO_U8VEC4(0xeab676ff);
 	const glm::u8vec4 bd_color = HEX_TO_U8VEC4(0x0c0f0aff);
-	//const glm::u8vec4 rd_color = HEX_TO_U8VEC4(0xff206eff);
-	//const glm::u8vec4 yl_color = HEX_TO_U8VEC4(0xfbff12ff);
 
 	//4 Chess boarders
 	Rectangle b1;
@@ -209,20 +209,6 @@ void ChessBoardTextureProgram::SetupChessBoard()
 		l2.color = bd_color;
 		board_assets.push_back(l2);
 	}
-	//std::cout << board_assets.size() << std::endl;
-	//for (auto& r : board_assets)
-	//{
-	//	GLCall(glGenBuffers(1, &r.vertex_buffer));
-	//	GLCall(glBindBuffer(GL_ARRAY_BUFFER, r.vertex_buffer));
-	//	Vertex vertices[]{
-	//		{{r.rectangle_size[0], r.rectangle_size[1]}, r.color, {0,1}},
-	//		{{r.rectangle_size[2], r.rectangle_size[1]}, r.color, {1,1}},
-	//		{{r.rectangle_size[0], r.rectangle_size[3]}, r.color, {0,0}},
-	//		{{r.rectangle_size[2], r.rectangle_size[3]}, r.color, {1,0}}
-	//	};
-	//	GLCall(glBufferData(GL_ARRAY_BUFFER, 4 * sizeof(Vertex), static_cast<const void*>(vertices), GL_STATIC_DRAW));
-	//	r.vertex_array = GetVao(r.vertex_buffer);
-	//}
 }
 
 void ChessBoardTextureProgram::DrawChessBoard(glm::uvec2 const& drawable_size) const
@@ -252,16 +238,6 @@ void ChessBoardTextureProgram::DrawChessBoard(glm::uvec2 const& drawable_size) c
 
 		GLCall(glDeleteBuffers(1, &vertex_buffer));
 		GLCall(glDeleteVertexArrays(1, &vertex_array));
-
-		//for (auto& r : board_assets)
-		//{
-		//	GLCall(glUseProgram(program));
-		//	GLCall(glBindVertexArray(r.vertex_buffer));
-		//	GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rectangle_index_buffer));
-		//	GLCall(glActiveTexture(GL_TEXTURE0));
-		//	GLCall(glBindTexture(GL_TEXTURE_2D, rectangle_texture));
-		//	GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, static_cast<const void*>(0)));
-		//}
 	}
 }
 
@@ -274,6 +250,7 @@ void ChessBoardTextureProgram::SetupChessPiece(std::vector<Circle>& chess_pieces
 	chess_pieces.push_back(c1);
 }
 
+// Code inspiration from https://github.com/GenBrg/MarryPrincess/blob/master/Texture2DProgram.cpp
 void ChessBoardTextureProgram::DrawChessPieces(std::vector<Circle>& chess_pieces, const glm::uvec2& drawable_size) const 
 {
 	for (const auto& c : chess_pieces)
