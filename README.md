@@ -1,10 +1,15 @@
-# (TODO: your game's title)
+# 3 Men Connect Four
 
-Author: (TODO: your name)
+Author: Zi Wang
 
-Design: (TODO: In two sentences or fewer, describe what is new and interesting about your game.)
+Design: 
 
-Networking: (TODO: How does your game implement client/server multiplayer? What messages are transmitted? Where in the code?)
+Unlike usual GoBang. This is 3 Men connect four. Any player who puts four chess pieces continuously in a row/col/diag, that player wins. You don't just attack and defense. Three players would add a lot of drama and strategy in this game.
+
+Networking: 
+
+From client to server: The valid input. By valid, it means the mouse click that is actually within the chessboard. It is in PlayMode.cpp update.
+From server to client: The last valid chess position and color. Each client's name. Each client's status (ex. Who's turn now and it's your turn to play.)
 
 Screen Shot:
 
@@ -12,9 +17,11 @@ Screen Shot:
 
 How To Play:
 
-(TODO: describe the controls and (if needed) goals/strategy.)
+Press on the chesboard to place a chess piece.
 
-Sources: (TODO: list a source URL for any assets you did not create yourself. Make sure you have a license for the asset.)
+Sources: 
+
+Opengl Render program code, structure inspiration : https://github.com/GenBrg/MarryPrincess/blob/master/Texture2DProgram.cpp
 
 This game was built with [NEST](NEST.md).
 
